@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#1a1a1a">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Пульт управления</title>
+<title>PYLT</title>
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -14,7 +14,7 @@
     padding: 0;
     height: 100%;
     overflow: hidden;
-    background: #1a1a1a;
+    background: #15181a;
     font-family: 'Courier New', monospace;
     color: #0f0;
     user-select: none;
@@ -30,328 +30,264 @@
              env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
 
-  .panel {
-    background: #2a2a2a;
-    padding: 18px 16px;
-    border-radius: 18px;
-    box-shadow: 0 0 30px #000, inset 0 0 20px #111;
-    width: 100%;
-    max-width: 420px;
-    max-height: 100vh;
-    overflow-y: auto;
-    text-align: center;
-    border: 3px solid #444;
-  }
-
-  h2 {
-    margin: 0 0 10px;
-    color: #f33;
-    letter-spacing: 3px;
-    font-size: 18px;
-    text-shadow: 0 0 10px #f33;
-  }
-
-  /* Шаги */
-  .step {
-    font-size: 14px;
-    margin: 8px 0 4px;
-    opacity: 0.35;
-    transition: 0.4s;
-    text-align: left;
-    padding-left: 4px;
-  }
-  .step.active { opacity: 1; text-shadow: 0 0 8px #0f0; }
-  .step.done { opacity: 0.6; color: #0a0; }
-  .step.done::after { content: ' ✓'; }
-
-  /* Крышка — крупная под палец */
-  .cover {
-    width: 100px;
-    height: 100px;
-    margin: 10px auto;
-    background: linear-gradient(145deg, #c0392b, #7b1e1e);
-    border-radius: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-weight: bold;
-    font-size: 13px;
-    letter-spacing: 1px;
-    transition: all 0.5s ease;
-    box-shadow: 0 0 15px #c0392b, 0 6px 0 #5a1414;
-    text-align: center;
-    padding: 8px;
-  }
-  .cover:active:not(.open) { transform: translateY(3px); box-shadow: 0 0 15px #c0392b, 0 3px 0 #5a1414; }
-  .cover.open {
-    transform: rotateX(80deg) translateY(-30px);
-    opacity: 0.25;
-    box-shadow: none;
-    pointer-events: none;
-  }
-
-  /* Рычаг */
-  .lever-box {
-    height: 160px;
-    width: 80px;
-    margin: 10px auto;
+  /* Корпус устройства */
+  .device {
     position: relative;
-    background: #111;
-    border-radius: 10px;
-    border: 2px solid #333;
-    overflow: hidden;
-    box-shadow: inset 0 0 20px #000;
+    width: 100%;
+    max-width: 400px;
+    padding: 22px 18px 26px;
+    background: linear-gradient(160deg, #4a5a3a 0%, #3a4630 50%, #2d3626 100%);
+    border-radius: 14px;
+    box-shadow:
+      0 0 40px #000,
+      inset 0 0 30px rgba(0,0,0,0.6),
+      inset 0 2px 0 rgba(255,255,255,0.08);
+    border: 2px solid #202a18;
   }
-  .lever {
+
+  /* Скотч-полосы (декор) */
+  .device::before,
+  .device::after {
+    content: '';
     position: absolute;
-    bottom: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 56px;
-    height: 76px;
-    background: linear-gradient(145deg, #888, #444);
-    border-radius: 8px;
+    background: repeating-linear-gradient(
+      45deg, #6b6b5a, #6b6b5a 3px, #5a5a4a 3px, #5a5a4a 6px
+    );
+    opacity: 0.55;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .device::before {
+    top: 0; bottom: 0; left: 12%; width: 22px;
+  }
+  .device::after {
+    top: 0; bottom: 0; right: 12%; width: 22px;
+  }
+
+  /* Красная кнопка (верхний левый угол) */
+  .red-btn {
+    position: absolute;
+    top: 22px;
+    left: 18px;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ff4a4a, #b30000 70%, #6b0000);
+    border: 3px solid #3a0000;
+    box-shadow:
+      0 4px 0 #4a0000,
+      0 0 18px rgba(255,0,0,0.7),
+      inset 0 -3px 6px rgba(0,0,0,0.5),
+      inset 0 3px 6px rgba(255,255,255,0.25);
     cursor: pointer;
-    transition: all 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-    box-shadow: 0 0 10px #555, 0 4px 0 #222;
+    z-index: 5;
+    transition: transform 0.1s, box-shadow 0.15s;
+  }
+  .red-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #4a0000, 0 0 25px rgba(255,0,0,1), inset 0 -2px 4px rgba(0,0,0,0.6); }
+  .red-btn.on {
+    background: radial-gradient(circle at 35% 30%, #6bff6b, #00b300 70%, #005a00);
+    border-color: #003a00;
+    box-shadow: 0 4px 0 #003a00, 0 0 25px rgba(0,255,0,0.9), inset 0 -3px 6px rgba(0,0,0,0.5);
+  }
+
+  /* Зелёное табло */
+  .screen {
+    margin: 6px 0 20px 60px;
+    height: 78px;
+    background: linear-gradient(180deg, #4a7a2a, #2d5a18);
+    border: 3px solid #1a2a10;
+    border-radius: 6px;
+    box-shadow:
+      inset 0 0 20px rgba(0,0,0,0.7),
+      0 0 12px rgba(80,255,80,0.25);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #ccc;
-    font-size: 11px;
-    font-weight: bold;
-    letter-spacing: 1px;
+    padding: 6px;
+    position: relative;
+    z-index: 1;
   }
-  .lever:active:not(.up) { transform: translateX(-50%) scale(0.96); }
-  .lever.up {
-    bottom: 78px;
-    box-shadow: 0 0 25px #0f0, 0 4px 0 #050;
-    background: linear-gradient(145deg, #6f6, #0a0);
-    color: #003300;
+  .screen-inner {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 3px;
+    align-items: center;
+  }
+  .digit {
+    height: 56px;
+    background: rgba(0, 30, 0, 0.35);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: bold;
+    color: #0a1a00;
+    text-shadow: none;
+    transition: 0.15s;
+    font-family: 'Courier New', monospace;
+  }
+  .digit.filled {
+    background: rgba(180, 255, 120, 0.85);
+    color: #0a2a00;
+    box-shadow: 0 0 15px rgba(180,255,120,0.8), inset 0 0 10px rgba(255,255,255,0.4);
+    text-shadow: 0 0 6px rgba(255,255,255,0.6);
+  }
+  .digit.error {
+    background: rgba(255, 80, 80, 0.9);
+    color: #fff;
+    box-shadow: 0 0 20px rgba(255,50,50,1);
+    animation: shake 0.4s;
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+  }
+
+  /* Клавиатура */
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    background: #2a2a2a;
+    padding: 14px;
+    border-radius: 10px;
+    border: 3px solid #1a1a1a;
+    box-shadow: inset 0 0 20px #000, 0 4px 0 #0a0a0a;
+    position: relative;
+    z-index: 3;
+    max-width: 280px;
+    margin: 0 auto;
+  }
+  .key {
+    aspect-ratio: 1 / 1;
+    background: linear-gradient(180deg, #d8d8d8, #a8a8a8);
+    border: 2px solid #666;
+    border-radius: 6px;
+    font-size: 26px;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    color: #222;
+    cursor: pointer;
+    box-shadow: 0 3px 0 #555, inset 0 1px 0 rgba(255,255,255,0.7);
+    transition: transform 0.08s, box-shadow 0.08s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .key:active {
+    transform: translateY(3px);
+    box-shadow: 0 0 0 #555, inset 0 1px 0 rgba(255,255,255,0.5);
+  }
+  .key:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* Подпись EXPLOSIVES справа */
+  .label {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%) rotate(180deg);
+    writing-mode: vertical-rl;
+    color: #f33;
+    font-size: 11px;
+    letter-spacing: 3px;
+    font-weight: bold;
+    text-shadow: 0 0 6px #f33;
+    opacity: 0.85;
+    z-index: 4;
     pointer-events: none;
   }
 
-  /* Ввод кода */
-  input {
-    width: 100%;
-    padding: 16px;
-    margin: 8px 0;
-    background: #000;
-    border: 2px solid #0f0;
-    color: #0f0;
-    font-size: 22px;
-    font-family: 'Courier New', monospace;
-    text-align: center;
-    letter-spacing: 10px;
-    border-radius: 8px;
-    outline: none;
-    transition: border-color 0.3s;
+  /* Вспышка финала */
+  .flash {
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9998;
+    transition: opacity 0.15s;
   }
-  input:disabled { border-color: #333; color: #333; }
-  input::placeholder { letter-spacing: 5px; color: #0a0; opacity: 0.5; }
+  .flash.on { opacity: 1; }
 
-  /* Кнопка */
-  button {
-    width: 100%;
-    padding: 18px;
-    background: #0a0;
-    border: none;
-    color: #fff;
-    font-size: 18px;
-    font-weight: bold;
-    font-family: 'Courier New', monospace;
-    border-radius: 10px;
-    cursor: pointer;
-    letter-spacing: 3px;
-    transition: 0.2s;
-    box-shadow: 0 4px 0 #050;
-    margin-top: 6px;
-  }
-  button:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #050; }
-  button:disabled { background: #333; color: #666; box-shadow: 0 4px 0 #111; }
-
-  /* Экран */
-  #screen {
-    margin-top: 14px;
-    min-height: 120px;
-    background: #000;
-    border: 2px solid #333;
-    border-radius: 8px;
-    padding: 12px;
-    font-size: 14px;
-    line-height: 1.5;
-    text-align: left;
-    color: #0f0;
-    white-space: pre-line;
-    overflow-wrap: break-word;
-    text-shadow: 0 0 4px #0f0;
-  }
-
-  /* На низких экранах — компактнее */
+  /* На низких экранах */
   @media (max-height: 700px) {
-    .lever-box { height: 120px; }
-    .lever { height: 60px; }
-    .lever.up { bottom: 56px; }
-    .cover { width: 80px; height: 80px; }
-    h2 { font-size: 16px; }
-    input { padding: 12px; font-size: 20px; }
-    button { padding: 14px; }
-    #screen { min-height: 90px; font-size: 13px; }
+    .screen { height: 62px; }
+    .digit { height: 44px; font-size: 26px; }
+    .keypad { gap: 8px; padding: 10px; max-width: 240px; }
+    .key { font-size: 22px; }
+    .red-btn { width: 40px; height: 40px; }
   }
-
   @media (max-height: 600px) {
-    .lever-box { height: 100px; }
-    .lever { height: 50px; }
-    .lever.up { bottom: 46px; }
-    .cover { width: 70px; height: 70px; font-size: 11px; }
-    .step { font-size: 12px; margin: 5px 0 2px; }
+    .screen { height: 52px; margin-bottom: 12px; }
+    .digit { height: 36px; font-size: 22px; }
+    .keypad { max-width: 210px; gap: 6px; padding: 8px; }
+    .key { font-size: 18px; }
   }
 </style>
 </head>
 <body>
 
-<div class="panel">
-  <h2>SYSTEM CONTROL</h2>
+<div class="device">
+  <div class="red-btn" id="redBtn"></div>
 
-  <div class="step active" id="step1">1. Открыть крышку</div>
-  <div class="cover" id="cover">ОТКРЫТЬ</div>
-
-  <div class="step" id="step2">2. Поднять рычаг</div>
-  <div class="lever-box">
-    <div class="lever" id="lever">PULL</div>
+  <div class="screen">
+    <div class="screen-inner" id="screen">
+      <div class="digit"></div><div class="digit"></div><div class="digit"></div><div class="digit"></div>
+      <div class="digit"></div><div class="digit"></div><div class="digit"></div><div class="digit"></div>
+    </div>
   </div>
 
-  <div class="step" id="step3">3. Ввести код</div>
-  <input type="tel" id="code" inputmode="numeric" pattern="[0-9]*" placeholder="----" maxlength="4" disabled autocomplete="off">
-  <button id="startBtn" disabled>ЗАПУСК</button>
+  <div class="keypad" id="keypad">
+    <button class="key" data-k="7">7</button>
+    <button class="key" data-k="8">8</button>
+    <button class="key" data-k="9">9</button>
+    <button class="key" data-k="4">4</button>
+    <button class="key" data-k="5">5</button>
+    <button class="key" data-k="6">6</button>
+    <button class="key" data-k="1">1</button>
+    <button class="key" data-k="2">2</button>
+    <button class="key" data-k="3">3</button>
+    <button class="key" data-k="*">*</button>
+    <button class="key" data-k="0">0</button>
+    <button class="key" data-k="#">#</button>
+  </div>
 
-  <div id="screen">Ожидание действий...</div>
+  <div class="label">EXPLOSIVES</div>
 </div>
 
+<div class="flash" id="flash"></div>
+
 <script>
-  const cover    = document.getElementById('cover');
-  const lever    = document.getElementById('lever');
-  const codeInp  = document.getElementById('code');
-  const startBtn = document.getElementById('startBtn');
-  const screenEl = document.getElementById('screen');
+  const SECRET_CODE = "12345678"; // ← поменяй на свой 8-значный код
+  const MAX_LEN = 8;
 
-  const step1 = document.getElementById('step1');
-  const step2 = document.getElementById('step2');
-  const step3 = document.getElementById('step3');
+  const redBtn  = document.getElementById('redBtn');
+  const screenEl= document.getElementById('screen');
+  const keys    = document.querySelectorAll('.key');
+  const flash   = document.getElementById('flash');
 
-  const SECRET_CODE = "1234";
-  let coverOpened = false;
-  let leverUp = false;
+  const digits = screenEl.querySelectorAll('.digit');
 
-  // Вибрация (если поддерживается)
-  function vibrate(pattern) {
-    if (navigator.vibrate) navigator.vibrate(pattern);
-  }
+  let armed = false;      // активирована ли кнопка
+  let input = "";         // текущий ввод
+  let locked = false;     // блокировка после успеха
 
-  // 1. Крышка
-  cover.addEventListener('click', () => {
-    if (coverOpened) return;
-    coverOpened = true;
-    cover.classList.add('open');
-    cover.textContent = '';
-    screenEl.textContent = "> Крышка открыта\n> Рычаг разблокирован";
-    step1.classList.remove('active');
-    step1.classList.add('done');
-    step2.classList.add('active');
-    vibrate(30);
-  });
+  function vibrate(p) { if (navigator.vibrate) navigator.vibrate(p); }
 
-  // 2. Рычаг
-  lever.addEventListener('click', () => {
-    if (!coverOpened) {
-      screenEl.textContent = "> ОШИБКА: сначала откройте крышку!";
-      vibrate([50, 50, 50]);
-      return;
-    }
-    if (leverUp) return;
-    leverUp = true;
-    lever.classList.add('up');
-    lever.textContent = 'UP';
-    codeInp.disabled = false;
-    codeInp.focus();
-    screenEl.textContent = "> Рычаг поднят\n> Введите код доступа";
-    step2.classList.remove('active');
-    step2.classList.add('done');
-    step3.classList.add('active');
-    vibrate(60);
-  });
-
-  // Авто-запуск при вводе 4 цифр
-  codeInp.addEventListener('input', () => {
-    if (codeInp.value.length === 4) {
-      startBtn.disabled = false;
-      startBtn.focus();
-    } else {
-      startBtn.disabled = true;
-    }
-  });
-
-  // 3. Запуск
-  startBtn.addEventListener('click', () => {
-    if (codeInp.value !== SECRET_CODE) {
-      screenEl.textContent = "> ДОСТУП ЗАПРЕЩЁН\n> Неверный код";
-      codeInp.value = '';
-      startBtn.disabled = true;
-      codeInp.style.borderColor = '#f00';
-      vibrate([100, 50, 100]);
-      setTimeout(() => codeInp.style.borderColor = '#0f0', 600);
-      return;
-    }
-    codeInp.disabled = true;
-    startBtn.disabled = true;
-    step3.classList.remove('active');
-    step3.classList.add('done');
-    runSequence();
-  });
-
-  function runSequence() {
-    const messages = [
-      "> ДОСТУП РАЗРЕШЁН",
-      "> Инициализация систем...",
-      "> Проверка соединений... OK",
-      "> Загрузка протокола...",
-      "> 3...",
-      "> 2...",
-      "> 1...",
-      "> ПУСК! 🚀"
-    ];
-
-    let i = 0;
-    const interval = setInterval(() => {
-      screenEl.textContent = messages.slice(0, i + 1).join('\n');
-      beep(400 + i * 100, 0.12);
-      vibrate(40);
-      i++;
-      if (i >= messages.length) {
-        clearInterval(interval);
-        finale();
-      }
-    }, 700);
-  }
-
-  function finale() {
-    document.body.style.background = "#003300";
-    screenEl.textContent += "\n\n>>> СИСТЕМА ЗАПУЩЕНА <<<";
-    vibrate([100, 50, 100, 50, 300]);
-    fireConfetti();
-    beep(1200, 0.5);
-  }
-
-  // Звук
-  function beep(freq = 600, duration = 0.15) {
+  function beep(freq = 800, duration = 0.08, type = 'square') {
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.frequency.value = freq;
-      osc.type = 'square';
+      osc.type = type;
       osc.connect(gain);
       gain.connect(ctx.destination);
       gain.gain.setValueAtTime(0.05, ctx.currentTime);
@@ -361,39 +297,119 @@
     } catch(e) {}
   }
 
-  // Конфетти
-  function fireConfetti() {
-    const emojis = ['🚀','✨','⭐','🎉','💫'];
-    const count = window.innerWidth < 500 ? 20 : 30;
-    for (let i = 0; i < count; i++) {
-      const span = document.createElement('span');
-      span.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-      span.style.position = 'fixed';
-      span.style.left = Math.random() * 100 + 'vw';
-      span.style.top = '-60px';
-      span.style.fontSize = (18 + Math.random() * 22) + 'px';
-      span.style.pointerEvents = 'none';
-      span.style.zIndex = '9999';
-      span.style.transition = `transform ${1.5 + Math.random() * 2}s ease-in, opacity 1.2s`;
-      document.body.appendChild(span);
+  function render() {
+    digits.forEach((d, i) => {
+      d.classList.remove('filled', 'error');
+      d.textContent = '';
+      if (i < input.length) {
+        d.textContent = input[i];
+        d.classList.add('filled');
+      }
+    });
+  }
 
-      requestAnimationFrame(() => {
-        span.style.transform = `translateY(${window.innerHeight + 120}px) rotate(${Math.random()*720}deg)`;
-        span.style.opacity = 0;
-      });
+  // Красная кнопка — активирует пульт
+  redBtn.addEventListener('click', () => {
+    if (locked) return;
+    armed = !armed;
+    redBtn.classList.toggle('on', armed);
+    vibrate(armed ? 40 : 20);
+    beep(armed ? 900 : 500, 0.1);
+    if (!armed) {
+      input = "";
+      render();
+    }
+  });
 
-      setTimeout(() => span.remove(), 4000);
+  // Нажатие клавиш
+  keys.forEach(k => {
+    k.addEventListener('click', () => {
+      if (locked) return;
+      if (!armed) {
+        vibrate([60, 40, 60]);
+        beep(200, 0.15, 'sawtooth');
+        return;
+      }
+      const val = k.dataset.k;
+      if (input.length >= MAX_LEN) return;
+
+      input += val;
+      render();
+      beep(700 + input.length * 40, 0.05);
+      vibrate(15);
+
+      if (input.length === MAX_LEN) {
+        setTimeout(checkCode, 250);
+      }
+    });
+  });
+
+  function checkCode() {
+    if (input === SECRET_CODE) {
+      onSuccess();
+    } else {
+      onError();
     }
   }
 
-  // Предотврат случайного зума двойным тапом
-  let lastTouch = 0;
-  document.addEventListener('touchend', (e) => {
-    const now = Date.now();
-    if (now - lastTouch <= 300) e.preventDefault();
-    lastTouch = now;
-  }, { passive: false });
+  function onError() {
+    vibrate([120, 60, 120, 60, 200]);
+    beep(150, 0.4, 'sawtooth');
+
+    digits.forEach(d => {
+      d.classList.remove('filled');
+      d.classList.add('error');
+    });
+
+    setTimeout(() => {
+      input = "";
+      render();
+    }, 800);
+  }
+
+  function onSuccess() {
+    locked = true;
+
+    // Финальный звук — «бум»
+    beep(80, 1.2, 'sawtooth');
+    setTimeout(() => beep(60, 1.5, 'triangle'), 100);
+    vibrate([200, 50, 200, 50, 500]);
+
+    // Вспышка
+    flash.classList.add('on');
+    setTimeout(() => flash.classList.remove('on'), 180);
+
+    // Все цифры ярко горят
+    digits.forEach(d => d.classList.add('filled'));
+
+    // Тряска всего устройства
+    const device = document.querySelector('.device');
+    let shakes = 0;
+    const shakeInterval = setInterval(() => {
+      const x = (Math.random() - 0.5) * 12;
+      const y = (Math.random() - 0.5) * 12;
+      const r = (Math.random() - 0.5) * 3;
+      device.style.transform = `translate(${x}px, ${y}px) rotate(${r}deg)`;
+      shakes++;
+      if (shakes > 25) {
+        clearInterval(shakeInterval);
+        device.style.transform = '';
+      }
+    }, 40);
+
+    // Финальное состояние экрана — символы гаснут, экран "умер"
+    setTimeout(() => {
+      digits.forEach((d, i) => {
+        setTimeout(() => {
+          d.classList.remove('filled');
+          d.textContent = '';
+        }, i * 60);
+      });
+    }, 900);
+  }
+
+  render();
 </script>
 
 </body>
-  </html>
+ </html>
