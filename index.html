@@ -38,7 +38,7 @@
     background-repeat: no-repeat;
   }
 
-  /* Красная кнопка (слева, ~ верхняя треть) */
+  /* Красная кнопка — зона нажатия */
   .btn-zone {
     position: absolute;
     top: 14%;
@@ -50,7 +50,7 @@
     z-index: 5;
   }
 
-  /* Зелёная подсветка поверх красной кнопки */
+  /* Зелёная подсветка — точно такие же размеры и позиция, как у btn-zone */
   .btn-light {
     position: absolute;
     top: 14%;
@@ -62,13 +62,15 @@
     z-index: 4;
     opacity: 0;
     transition: opacity 0.05s;
-    box-shadow: 0 0 25px 5px rgba(0,255,0,0.9),
-                inset 0 0 15px rgba(0,255,0,0.8);
-    background: radial-gradient(circle at 35% 30%, rgba(120,255,120,0.9), rgba(0,180,0,0.9) 70%, rgba(0,90,0,0.9));
+    background: radial-gradient(circle at 35% 30%,
+                rgba(120,255,120,0.95),
+                rgba(0,180,0,0.95) 70%,
+                rgba(0,90,0,0.95));
+    box-shadow: inset 0 0 15px rgba(0,255,0,0.7);
   }
   .btn-light.on { opacity: 1; }
 
-  /* Табло — 8 ячеек, справа от кнопки */
+  /* Табло — 8 ячеек */
   .display {
     position: absolute;
     top: 15%;
@@ -81,6 +83,7 @@
     padding: 0.8%;
     z-index: 3;
     pointer-events: none;
+    overflow: hidden;
   }
   .cell {
     border-radius: 4px;
@@ -89,20 +92,20 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2.6vh;
+    font-size: 2vh;
+    line-height: 1;
     font-weight: bold;
     color: #0a2a00;
     font-family: 'Courier New', monospace;
-    text-shadow: 0 0 8px rgba(255,255,255,0.7);
+    text-shadow: none;
+    overflow: hidden;
   }
   .cell.filled {
     background: radial-gradient(circle, rgba(200,255,140,0.95), rgba(140,230,80,0.9));
-    box-shadow: 0 0 15px rgba(180,255,120,0.9),
-                inset 0 0 10px rgba(255,255,255,0.5);
+    box-shadow: inset 0 0 8px rgba(255,255,255,0.4);
   }
   .cell.error {
     background: radial-gradient(circle, rgba(255,120,120,0.95), rgba(220,40,40,0.9));
-    box-shadow: 0 0 18px rgba(255,60,60,1);
     color: #fff;
     animation: shake 0.3s;
   }
