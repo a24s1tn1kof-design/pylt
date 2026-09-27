@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1a1a1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Пульт управления</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #1a1a1a;
+    font-family: 'Courier New', monospace;
+    color: #0f0;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right)
+             env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  .panel {
+    background: #2a2a2a;
+    padding: 18px 16px;
+    border-radius: 18px;
+    box-shadow: 0 0 30px #000, inset 0 0 20px #111;
+    width: 100%;
+    max-width: 420px;
+    max-height: 100vh;
+    overflow-y: auto;
+    text-align: center;
+    border: 3px solid #444;
+  }
+
+  h2 {
+    margin: 0 0 10px;
+    color: #f33;
+    letter-spacing: 3px;
+    font-size: 18px;
+    text-shadow: 0 0 10px #f33;
+  }
+
+  /* Шаги */
+  .step {
+    font-size: 14px;
+    margin: 8px 0 4px;
+    opacity: 0.35;
+    transition: 0.4s;
+    text-align: left;
+    padding-left: 4px;
+  }
+  .step.active { opacity: 1; text-shadow: 0 0 8px #0f0; }
+  .step.done { opacity: 0.6; color: #0a0; }
+  .step.done::after { content: ' ✓'; }
+
+  /* Крышка — крупная под палец */
+  .cover {
+    width: 100px;
+    height: 100px;
+    margin: 10px auto;
+    background: linear-gradient(145deg, #c0392b, #7b1e1e);
+    border-radius: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: bold;
+    font-size: 13px;
+    letter-spacing: 1px;
+    transition: all 0.5s ease;
+    box-shadow: 0 0 15px #c0392b, 0 6px 0 #5a1414;
+    text-align: center;
+    padding: 8px;
+  }
+  .cover:active:not(.open) { transform: translateY(3px); box-shadow: 0 0 15px #c0392b, 0 3px 0 #5a1414; }
+  .cover.open {
+    transform: rotateX(80deg) translateY(-30px);
+    opacity: 0.25;
+    box-shadow: none;
+    pointer-events: none;
+  }
+
+  /* Рычаг */
+  .lever-box {
+    height: 160px;
+    width: 80px;
+    margin: 10px auto;
+    position: relative;
+    background: #111;
+    border-radius: 10px;
+    border: 2px solid #333;
+    overflow: hidden;
+    box-shadow: inset 0 0 20px #000;
+  }
+  .lever {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 56px;
+    height: 76px;
+    background: linear-gradient(145deg, #888, #444);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    box-shadow: 0 0 10px #555, 0 4px 0 #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ccc;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+  .lever:active:not(.up) { transform: translateX(-50%) scale(0.96); }
+  .lever.up {
+    bottom: 78px;
+    box-shadow: 0 0 25px #0f0, 0 4px 0 #050;
+    background: linear-gradient(145deg, #6f6, #0a0);
+    color: #003300;
+    pointer-events: none;
+  }
+
+  /* Ввод кода */
+  input {
+    width: 100%;
+    padding: 16px;
+    margin: 8px 0;
+    background: #000;
+    border: 2px solid #0f0;
+    color: #0f0;
+    font-size: 22px;
+    font-family: 'Courier New', monospace;
+    text-align: center;
+    letter-spacing: 10px;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+  input:disabled { border-color: #333; color: #333; }
+  input::placeholder { letter-spacing: 5px; color: #0a0; opacity: 0.5; }
+
+  /* Кнопка */
+  button {
+    width: 100%;
+    padding: 18px;
+    background: #0a0;
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    border-radius: 10px;
+    cursor: pointer;
+    letter-spacing: 3px;
+    transition: 0.2s;
+    box-shadow: 0 4px 0 #050;
+    margin-top: 6px;
+  }
+  button:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #050; }
+  button:disabled { background: #333; color: #666; box-shadow: 0 4px 0 #111; }
+
+  /* Экран */
+  #screen {
+    margin-top: 14px;
+    min-height: 120px;
+    background: #000;
+    border: 2px solid #333;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: left;
+    color: #0f0;
+    white-space: pre-line;
+    overflow-wrap: break-word;
+    text-shadow: 0 0 4px #0f0;
+  }
+
+  /* На низких экранах — компактнее */
+  @media (max-height: 700px) {
+    .lever-box { height: 120px; }
+    .lever { height: 60px; }
+    .lever.up { bottom: 56px; }
+    .cover { width: 80px; height: 80px; }
+    h2 { font-size: 16px; }
+    input { padding: 12px; font-size: 20px; }
+    button { padding: 14px; }
+    #screen { min-height: 90px; font-size: 13px; }
+  }
+
+  @media (max-height: 600px) {
+    .lever-box { height: 100px; }
+    .lever { height: 50px; }
+    .lever.up { bottom: 46px; }
+    .cover { width: 70px; height: 70px; font-size: 11px; }
+    .step { font-size: 12px; margin: 5px 0 2px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="panel">
+  <h2>SYSTEM CONTROL</h2>
+
+  <div class="step active" id="step1">1. Открыть крышку</div>
+  <div class="cover" id="cover">ОТКРЫТЬ</div>
+
+  <div class="step" id="step2">2. Поднять рычаг</div>
+  <div class="lever-box">
+    <div class="lever" id="lever">PULL</div>
+  </div>
+
+  <div class="step" id="step3">3. Ввести код</div>
+  <input type="tel" id="code" inputmode="numeric" pattern="[0-9]*" placeholder="----" maxlength="4" disabled autocomplete="off">
+  <button id="startBtn" disabled>ЗАПУСК</button>
+
+  <div id="screen">Ожидание действий...</div>
+</div>
+
+<script>
+  const cover    = document.getElementById('cover');
+  const lever    = document.getElementById('lever');
+  const codeInp  = document.getElementById('code');
+  const startBtn = document.getElementById('startBtn');
+  const screenEl = document.getElementById('screen');
+
+  const step1 = document.getElementById('step1');
+  const step2 = document.getElementById('step2');
+  const step3 = document.getElementById('step3');
+
+  const SECRET_CODE = "1234";
+  let coverOpened = false;
+  let leverUp = false;
+
+  // Вибрация (если поддерживается)
+  function vibrate(pattern) {
+    if (navigator.vibrate) navigator.vibrate(pattern);
+  }
+
+  // 1. Крышка
+  cover.addEventListener('click', () => {
+    if (coverOpened) return;
+    coverOpened = true;
+    cover.classList.add('open');
+    cover.textContent = '';
+    screenEl.textContent = "> Крышка открыта\n> Рычаг разблокирован";
+    step1.classList.remove('active');
+    step1.classList.add('done');
+    step2.classList.add('active');
+    vibrate(30);
+  });
+
+  // 2. Рычаг
+  lever.addEventListener('click', () => {
+    if (!coverOpened) {
+      screenEl.textContent = "> ОШИБКА: сначала откройте крышку!";
+      vibrate([50, 50, 50]);
+      return;
+    }
+    if (leverUp) return;
+    leverUp = true;
+    lever.classList.add('up');
+    lever.textContent = 'UP';
+    codeInp.disabled = false;
+    codeInp.focus();
+    screenEl.textContent = "> Рычаг поднят\n> Введите код доступа";
+    step2.classList.remove('active');
+    step2.classList.add('done');
+    step3.classList.add('active');
+    vibrate(60);
+  });
+
+  // Авто-запуск при вводе 4 цифр
+  codeInp.addEventListener('input', () => {
+    if (codeInp.value.length === 4) {
+      startBtn.disabled = false;
+      startBtn.focus();
+    } else {
+      startBtn.disabled = true;
+    }
+  });
+
+  // 3. Запуск
+  startBtn.addEventListener('click', () => {
+    if (codeInp.value !== SECRET_CODE) {
+      screenEl.textContent = "> ДОСТУП ЗАПРЕЩЁН\n> Неверный код";
+      codeInp.value = '';
+      startBtn.disabled = true;
+      codeInp.style.borderColor = '#f00';
+      vibrate([100, 50, 100]);
+      setTimeout(() => codeInp.style.borderColor = '#0f0', 600);
+      return;
+    }
+    codeInp.disabled = true;
+    startBtn.disabled = true;
+    step3.classList.remove('active');
+    step3.classList.add('done');
+    runSequence();
+  });
+
+  function runSequence() {
+    const messages = [
+      "> ДОСТУП РАЗРЕШЁН",
+      "> Инициализация систем...",
+      "> Проверка соединений... OK",
+      "> Загрузка протокола...",
+      "> 3...",
+      "> 2...",
+      "> 1...",
+      "> ПУСК! 🚀"
+    ];
+
+    let i = 0;
+    const interval = setInterval(() => {
+      screenEl.textContent = messages.slice(0, i + 1).join('\n');
+      beep(400 + i * 100, 0.12);
+      vibrate(40);
+      i++;
+      if (i >= messages.length) {
+        clearInterval(interval);
+        finale();
+      }
+    }, 700);
+  }
+
+  function finale() {
+    document.body.style.background = "#003300";
+    screenEl.textContent += "\n\n>>> СИСТЕМА ЗАПУЩЕНА <<<";
+    vibrate([100, 50, 100, 50, 300]);
+    fireConfetti();
+    beep(1200, 0.5);
+  }
+
+  // Звук
+  function beep(freq = 600, duration = 0.15) {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.frequency.value = freq;
+      osc.type = 'square';
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(0.05, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch(e) {}
+  }
+
+  // Конфетти
+  function fireConfetti() {
+    const emojis = ['🚀','✨','⭐','🎉','💫'];
+    const count = window.innerWidth < 500 ? 20 : 30;
+    for (let i = 0; i < count; i++) {
+      const span = document.createElement('span');
+      span.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      span.style.position = 'fixed';
+      span.style.left = Math.random() * 100 + 'vw';
+      span.style.top = '-60px';
+      span.style.fontSize = (18 + Math.random() * 22) + 'px';
+      span.style.pointerEvents = 'none';
+      span.style.zIndex = '9999';
+      span.style.transition = `transform ${1.5 + Math.random() * 2}s ease-in, opacity 1.2s`;
+      document.body.appendChild(span);
+
+      requestAnimationFrame(() => {
+        span.style.transform = `translateY(${window.innerHeight + 120}px) rotate(${Math.random()*720}deg)`;
+        span.style.opacity = 0;
+      });
+
+      setTimeout(() => span.remove(), 4000);
+    }
+  }
+
+  // Предотврат случайного зума двойным тапом
+  let lastTouch = 0;
+  document.addEventListener('touchend', (e) => {
+    const now = Date.now();
+    if (now - lastTouch <= 300) e.preventDefault();
+    lastTouch = now;
+  }, { passive: false });
+</script>
+
+</body>
+  </html>
