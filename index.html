@@ -27,36 +27,36 @@
     align-items: center;
   }
 
-  /* Обёртка — держит пропорции картинки */
+  /* Обёртка — точные пропорции картинки 388:320 */
   .stage {
     position: relative;
     width: 100vw;
-    max-width: 100vh * 0.82;
-    aspect-ratio: 410 / 500;
+    max-width: calc(100vh * 388 / 320);
+    aspect-ratio: 388 / 320;
     background-image: url('i (17).jpeg');
     background-size: 100% 100%;
     background-repeat: no-repeat;
   }
 
-  /* Невидимая зона красной кнопки */
+  /* Красная кнопка (слева, ~ верхняя треть) */
   .btn-zone {
     position: absolute;
-    top: 8.5%;
-    left: 7%;
-    width: 15%;
-    height: 12%;
+    top: 14%;
+    left: 8%;
+    width: 14%;
+    height: 17%;
     border-radius: 50%;
     cursor: pointer;
     z-index: 5;
   }
 
-  /* Индикатор поверх кнопки — перекрывает красную/зелёную */
+  /* Зелёная подсветка поверх красной кнопки */
   .btn-light {
     position: absolute;
-    top: 8.5%;
-    left: 7%;
-    width: 15%;
-    height: 12%;
+    top: 14%;
+    left: 8%;
+    width: 14%;
+    height: 17%;
     border-radius: 50%;
     pointer-events: none;
     z-index: 4;
@@ -68,17 +68,17 @@
   }
   .btn-light.on { opacity: 1; }
 
-  /* Табло — 8 ячеек */
+  /* Табло — 8 ячеек, справа от кнопки */
   .display {
     position: absolute;
-    top: 10%;
-    left: 22%;
-    width: 68%;
-    height: 12%;
+    top: 15%;
+    left: 25%;
+    width: 65%;
+    height: 14%;
     display: grid;
     grid-template-columns: repeat(8, 1fr);
     gap: 1.5%;
-    padding: 1%;
+    padding: 0.8%;
     z-index: 3;
     pointer-events: none;
   }
@@ -89,7 +89,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 3.2vh;
+    font-size: 2.6vh;
     font-weight: bold;
     color: #0a2a00;
     font-family: 'Courier New', monospace;
@@ -112,13 +112,13 @@
     66% { transform: translateX(4px); }
   }
 
-  /* Клавиатура — 12 невидимых зон */
+  /* Клавиатура — точно по картинке, по центру */
   .keypad {
     position: absolute;
-    top: 38%;
-    left: 17%;
-    width: 66%;
-    height: 50%;
+    top: 47%;
+    left: 33%;
+    width: 34%;
+    height: 42%;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(4, 1fr);
@@ -129,7 +129,7 @@
   .key {
     background: transparent;
     border: none;
-    border-radius: 10px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 0;
     color: transparent;
@@ -138,10 +138,7 @@
   .key:active {
     background: rgba(255,255,255,0.25);
   }
-  .key:disabled {
-    cursor: not-allowed;
-    background: transparent;
-  }
+  .key:disabled { cursor: not-allowed; background: transparent; }
 
   /* Вспышка финала */
   .flash {
@@ -155,7 +152,7 @@
   }
   .flash.on { opacity: 1; }
 
-  /* Тряска всего экрана при взрыве */
+  /* Тряска */
   .stage.shake {
     animation: stageShake 0.4s infinite;
   }
@@ -199,7 +196,7 @@
 <div class="flash" id="flash"></div>
 
 <script>
-  const SECRET_CODE = "12345678"; // ← 8-значный код
+  const SECRET_CODE = "12345678";
   const MAX_LEN = 8;
 
   const stage    = document.getElementById('stage');
@@ -243,7 +240,6 @@
     });
   }
 
-  // Красная кнопка — переключается в зелёную и обратно. Без задержек.
   btnZone.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     if (locked) return;
@@ -251,13 +247,9 @@
     btnLight.classList.toggle('on', armed);
     vibrate(armed ? 40 : 20);
     beep(armed ? 1000 : 500, 0.05);
-    if (!armed) {
-      input = "";
-      render();
-    }
+    if (!armed) { input = ""; render(); }
   });
 
-  // Клавиатура — мгновенный отклик через pointerdown
   keys.forEach(k => {
     k.addEventListener('pointerdown', (e) => {
       e.preventDefault();
@@ -269,15 +261,11 @@
       }
       const val = k.dataset.k;
       if (input.length >= MAX_LEN) return;
-
       input += val;
       render();
       beep(700 + input.length * 40, 0.04);
       vibrate(12);
-
-      if (input.length === MAX_LEN) {
-        setTimeout(checkCode, 200);
-      }
+      if (input.length === MAX_LEN) setTimeout(checkCode, 200);
     });
   });
 
@@ -295,20 +283,14 @@
 
   function onSuccess() {
     locked = true;
-
     beep(80, 1.0, 'sawtooth');
     setTimeout(() => beep(60, 1.2, 'triangle'), 80);
     vibrate([200, 40, 200, 40, 400]);
-
     flash.classList.add('on');
     setTimeout(() => flash.classList.remove('on'), 150);
-
     cells.forEach(c => c.classList.add('filled'));
-
     stage.classList.add('shake');
     setTimeout(() => stage.classList.remove('shake'), 1000);
-
-    // Гасим экран по одной ячейке
     setTimeout(() => {
       cells.forEach((c, i) => {
         setTimeout(() => {
@@ -323,4 +305,4 @@
 </script>
 
 </body>
-                                               </html>
+ </html>
